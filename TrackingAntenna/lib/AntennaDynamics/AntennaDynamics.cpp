@@ -2,48 +2,77 @@
 #include "AntennaDynamics.hpp"
 #include "../Config/Config.hpp"
 #include "../Util/Util.hpp"
-#include "../Communication/Communication.hpp"
 
 AntennaDynamics::AntennaDynamics():
-    initialAntennaAzimuth_ {0}
+    comm_ {CONTROL_PORT},
+    initialAntennaAzimuth_ {0},
+    pitchServo_{},
+    yawServo_{}
 {
     
 }
 
 void AntennaDynamics::begin() {
-    pitchServo_.attach(PITCH_PWM);
-    yawServo_.attach(YAW_PWM);
+    if (pitchServo_.attach(PITCH_PWM,0,PITCH_START_ANGLE,PITCH_END_ANGLE,s3servo::microsecondsToDuty(PITCH_START_MICROSECONDS),s3servo::microsecondsToDuty(PITCH_END_MICROSECONDS))!=-1){
+        PDEBUG("attach pitch servo success\n");
+    }else {
+        PDEBUG("attach pitch servo fail\n");
+    }
+    if (yawServo_.attach(YAW_PWM,1,YAW_START_ANGLE,YAW_END_ANGLE,s3servo::microsecondsToDuty(YAW_START_MICROSECONDS),s3servo::microsecondsToDuty(YAW_END_MICROSECONDS))!=-1){
+        PDEBUG("attach yaw servo success\n");
+    }else {
+         PDEBUG("attach yaw servo fail\n");
+    }
+}
+
+bool AntennaDynamics::beginUDP() {
+    return comm_.beginUDP();
 }
 
 void AntennaDynamics::manualSetup() { // don't use this when we have the compass again
     float currentAngle {0};
 
-    PDEBUG("Beginning initial antenna azimuth calibration (north calibration). \nUse the 'a' and 'd' keys to rotate the antenna and space key when it is facing north. \n");
+    String welcomeMsg = "Beginning initial antenna azimuth calibration (north calibration). \nUse the 'a' and 'd' keys to rotate the antenna and space key when it is facing north. \n";
+    PDEBUG(welcomeMsg);
 
     while (true) {
-        while (MANUAL_SERIAL.available() > 0) {
-            char c = MANUAL_SERIAL.read();
-            switch (c) {
-                case 'a':
-                    currentAngle -= 3;
-                    if(currentAngle < YAW_END_ANGLE) {
-                        currentAngle = YAW_END_ANGLE;
-                    }
-                    setYawAngle(currentAngle);
-                    break;
-                case 'd':
-                    currentAngle += 3;
-                    if(currentAngle > YAW_START_ANGLE) {
-                        currentAngle = YAW_START_ANGLE;
-                    }
-                    setYawAngle(currentAngle);
-                    break;
-                case ' ':
-                    setInitialAntennaAzimuth(yawAngle());
-                    PDEBUG("Calibration complete, using angle: ");
-                    PDEBUG(initialAntennaAzimuth_);
-                    PDEBUG("\n");
-                    return;
+        int msglen = comm_.parseUDP();
+        if (msglen > 0) {
+            for (int i = 0; i < msglen; ++i) {
+                char c = comm_.packetBuffer_[i];
+                String left_msg = "Turning left. Yaw angle: ";
+                String right_msg = "Turning right. Yaw angle: ";
+                String completeMsg = "Calibration complete, using angle: ";
+                switch (c) {
+                    case 'a':
+                        currentAngle -= 3;
+                        if(currentAngle < YAW_END_ANGLE) {
+                            currentAngle = YAW_END_ANGLE;
+                        }
+                        PDEBUG("char a detected. \n");
+                        left_msg += String(currentAngle) + "\n";
+                        comm_.sendPacket((uint8_t*)left_msg.c_str(), strlen(left_msg.c_str()));
+                        setYawAngle(currentAngle);
+                        break;
+                    case 'd':
+                        currentAngle += 3;
+                        if(currentAngle > YAW_START_ANGLE) {
+                            currentAngle = YAW_START_ANGLE;
+                        }
+                        PDEBUG("char d detected. \n");
+                        right_msg += String(currentAngle) + "\n";
+                        comm_.sendPacket((uint8_t*)right_msg.c_str(), strlen(right_msg.c_str()));
+                        setYawAngle(currentAngle);
+                        break;
+                    case ' ':
+                        setInitialAntennaAzimuth(yawAngle());
+                        PDEBUG("Calibration complete, using angle: ");
+                        PDEBUG(initialAntennaAzimuth_);
+                        PDEBUG("\n");
+                        completeMsg += String(initialAntennaAzimuth_) + "\n";
+                        comm_.sendPacket((uint8_t*)completeMsg.c_str(), strlen(completeMsg.c_str()));
+                        return;
+                }
             }
         }
     }

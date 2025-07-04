@@ -11,12 +11,13 @@
 #endif
 
 // Servo Pins
-#define YAW_PWM 12
-#define PITCH_PWM 13
+#define PITCH_PWM 4
+#define YAW_PWM 5
+
 
 // WiFi ssid & pass
-#define WIFI_SSID "Sugoi"
-#define WIFI_PASS "Spikeball"
+#define WIFI_SSID "iPhone"
+#define WIFI_PASS "12345678"
 
 // Servo Limits and Angles
 #define YAW_START_MICROSECONDS 880
@@ -36,6 +37,7 @@
 #define PACKET_BUFFER_SIZE 512 // if significantly changing this value, make sure iterator data types and FreeRTOS delays are sufficient for it
 
 #define LOCAL_PORT 16550
+#define CONTROL_PORT 5888
 
 // disable GPS to use ANTENNA_ values instead
 // #define GPS
@@ -60,6 +62,6 @@
 // disable COMPASS to use MANUAL_SERIAL for initial antenna azimuth calibration (North calibration)
 // #define COMPASS
 
-#ifndef COMPASS
-    #define MANUAL_SERIAL Serial
-#endif
+// #ifndef COMPASS
+//     #define MANUAL_SERIAL Serial
+// #endif

@@ -2,6 +2,7 @@
 #include "DronePosition.hpp"
 #include "AntennaPosition.hpp"
 #include "AntennaDynamics.hpp"
+#include "Communication.hpp"
 #include "Util.hpp"
 #include "Config.hpp"
 
@@ -11,19 +12,24 @@ DronePosition   dronePos{};
 
 void setup() {
     // put your setup code here, to run once:
-    Serial.begin(9600);
+    Serial.begin(115200);
 
-    while(!Serial);
+    // while(!Serial); // No need for serial if we use wireless setup for everything
 
     antennaDyn.begin();
 
-    while (!dronePos.beginWiFi()) {
+    while (!Communication::beginWiFi()) {
         PDEBUG("Could not connect to WiFi, retrying... \n");
         delay(1000);
     }
     
+    while (!antennaDyn.beginUDP()) {
+        PDEBUG("Attempting to initialize UDP for the antenna, this may take a bit... \n");
+        delay(10000);
+    }
+
     while (!dronePos.beginUDP()) {
-        PDEBUG("Attempting to connect to WiFi and initialize UDP, this may take a bit... \n");
+        PDEBUG("Attempting to initialize UDP for drone position, this may take a bit... \n");
         delay(10000);
     }
 
@@ -42,7 +48,6 @@ void setup() {
     #else
         antennaDyn.initializeAzimuth(antennaPos.azimuth()); // Once compass is installed
     #endif
-
 }
 
 void runAntenna() {

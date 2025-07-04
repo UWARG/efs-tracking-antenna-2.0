@@ -1,14 +1,19 @@
-#include "ESP32Servo.h"
+// #include "ESP32Servo.h"
+#include "s3servo.hpp"
+#include "Communication.hpp"
 
 class AntennaDynamics {
    private:
-    Servo pitchServo_;
-    Servo yawServo_;
+
     float initialAntennaAzimuth_;
+    Communication comm_;
+    s3servo pitchServo_;
+    s3servo yawServo_;
 
    public:
     AntennaDynamics();
     void begin();
+    bool beginUDP();
     void manualSetup(); // until compass is installed
     void initalizeAzimuth(float azimuth);
     float yawAngle();
