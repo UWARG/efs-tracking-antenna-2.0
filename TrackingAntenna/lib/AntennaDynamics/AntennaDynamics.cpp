@@ -30,50 +30,44 @@ bool AntennaDynamics::beginUDP() {
 }
 
 void AntennaDynamics::manualSetup() { // don't use this when we have the compass again
-    float currentAngle {0};
+    setYawAngle(0);
 
-    String welcomeMsg = "Beginning initial antenna azimuth calibration (north calibration). \nUse the 'a' and 'd' keys to rotate the antenna and space key when it is facing north. \n";
+    while(comm_.parseUDP() <= 0) {
+        PDEBUG("Waiting for incoming packet to determine ip address\n");\
+        delay(1000);
+    }
+
+    String welcomeMsg = "Beginning initial antenna azimuth calibration (north calibration). \nPlease input the bearing of the antenna\n";
     PDEBUG(welcomeMsg);
+    comm_.sendPacket((uint8_t*)welcomeMsg.c_str(), welcomeMsg.length());
+
 
     while (true) {
         int msglen = comm_.parseUDP();
         if (msglen > 0) {
+            char angleArr[msglen + 1]; 
             for (int i = 0; i < msglen; ++i) {
                 char c = comm_.packetBuffer_[i];
-                String left_msg = "Turning left. Yaw angle: ";
-                String right_msg = "Turning right. Yaw angle: ";
-                String completeMsg = "Calibration complete, using angle: ";
-                switch (c) {
-                    case 'a':
-                        currentAngle -= 3;
-                        if(currentAngle < YAW_END_ANGLE) {
-                            currentAngle = YAW_END_ANGLE;
-                        }
-                        PDEBUG("char a detected. \n");
-                        left_msg += String(currentAngle) + "\n";
-                        comm_.sendPacket((uint8_t*)left_msg.c_str(), strlen(left_msg.c_str()));
-                        setYawAngle(currentAngle);
-                        break;
-                    case 'd':
-                        currentAngle += 3;
-                        if(currentAngle > YAW_START_ANGLE) {
-                            currentAngle = YAW_START_ANGLE;
-                        }
-                        PDEBUG("char d detected. \n");
-                        right_msg += String(currentAngle) + "\n";
-                        comm_.sendPacket((uint8_t*)right_msg.c_str(), strlen(right_msg.c_str()));
-                        setYawAngle(currentAngle);
-                        break;
-                    case ' ':
-                        setInitialAntennaAzimuth(yawAngle());
-                        PDEBUG("Calibration complete, using angle: ");
-                        PDEBUG(initialAntennaAzimuth_);
-                        PDEBUG("\n");
-                        completeMsg += String(initialAntennaAzimuth_) + "\n";
-                        comm_.sendPacket((uint8_t*)completeMsg.c_str(), strlen(completeMsg.c_str()));
-                        return;
-                }
+                angleArr[i] = c;
             }
+            angleArr[msglen] = '\0';
+            float angle = atof(angleArr);
+            // Converting compass bearing to angle from antenna (range -180 to 180 degrees) to match with previous implementation
+            if (angle < 0 || angle > 360) {
+                String errorMsg = "Invalid angle. Please enter a value between 0 and 360 degrees.\n";
+                PDEBUG(errorMsg);
+                comm_.sendPacket((uint8_t*)errorMsg.c_str(), errorMsg.length());
+                continue;
+            } else if (angle < 180){
+                angle = -angle; 
+            } else if (angle > 180) {
+                angle = 360 - angle;
+            }
+            setInitialAntennaAzimuth(angle);
+            String response = "Initial antenna azimuth set to: " + String(initialAntennaAzimuth_) + " degrees.\n";
+            PDEBUG(response);
+            comm_.sendPacket((uint8_t*)response.c_str(), response.length());
+            break;
         }
     }
 }
