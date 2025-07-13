@@ -57,6 +57,15 @@ void runAntenna() {
     float antennaToDroneElevation = calculateElevation(antennaToDroneDistance, antennaPos.altitude(), dronePos.altitude());
     antennaDyn.setAzimuth(antennaToDroneAzimuth);
     antennaDyn.setElevation(antennaToDroneElevation);
+    PDEBUG("Distance: ");
+    PDEBUG(antennaToDroneDistance);
+    PDEBUG(" Height difference: ");
+    PDEBUG(dronePos.altitude() - antennaPos.altitude());
+    PDEBUG(" drone alt: ");
+    PDEBUG(dronePos.altitude());
+    PDEBUG(" antenna alt: ");
+    PDEBUG(antennaPos.altitude());
+    PDEBUG("\n");
 }
 
 static unsigned long lastMillisGetPosition {0};

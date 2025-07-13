@@ -82,22 +82,22 @@ uint16_t Communication::parseUDP() {
     // if there's data available, read a packet
     int packetSize = UDP_.parsePacket();
     if (packetSize) {
-        PDEBUG("Received packet of size ");
-        PDEBUG(packetSize);
-        PDEBUG("\nFrom ");
-        PDEBUG(UDP_.remoteIP());
-        PDEBUG(", port ");
-        PDEBUG(UDP_.remotePort());
-        PDEBUG("\n");
+        // PDEBUG("Received packet of size ");
+        // PDEBUG(packetSize);
+        // PDEBUG("\nFrom ");
+        // PDEBUG(UDP_.remoteIP());
+        // PDEBUG(", port ");
+        // PDEBUG(UDP_.remotePort());
+        // PDEBUG("\n");
 
         // read the packet into packetBufffer
         uint16_t messageLength = UDP_.read(packetBuffer_, PACKET_BUFFER_SIZE);
-        PDEBUG("Contents:\n");
-        for (uint16_t i{0};  i < messageLength; ++i) {
-            char c = packetBuffer_[i];
-            PDEBUG(c);
-        }
-        PDEBUG("\n");
+        // PDEBUG("Contents:\n");
+        // for (uint16_t i{0};  i < messageLength; ++i) {
+        //     char c = packetBuffer_[i];
+        //     PDEBUG(c);
+        // }
+        // PDEBUG("\n");
 
         return messageLength;
     }

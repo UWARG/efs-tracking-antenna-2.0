@@ -29,7 +29,7 @@
 #define PITCH_START_MICROSECONDS 1000
 #define PITCH_END_MICROSECONDS 2000
 
-#define PITCH_START_ANGLE 0
+#define PITCH_START_ANGLE 0 // start from vertical
 #define PITCH_END_ANGLE 90
 
 #define MIN_SATELLITES 5 // sets the minimum number of satellites that need to be detected for antenna get position to return true

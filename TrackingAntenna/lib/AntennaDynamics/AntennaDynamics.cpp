@@ -30,6 +30,7 @@ bool AntennaDynamics::beginUDP() {
 }
 
 void AntennaDynamics::manualSetup() { // don't use this when we have the compass again
+    setPitchAngle(0);
     setYawAngle(0);
 
     while(comm_.parseUDP() <= 0) {
@@ -53,16 +54,16 @@ void AntennaDynamics::manualSetup() { // don't use this when we have the compass
             angleArr[msglen] = '\0';
             float angle = atof(angleArr);
             // Converting compass bearing to angle from antenna (range -180 to 180 degrees) to match with previous implementation
-            if (angle < 0 || angle > 360) {
-                String errorMsg = "Invalid angle. Please enter a value between 0 and 360 degrees.\n";
-                PDEBUG(errorMsg);
-                comm_.sendPacket((uint8_t*)errorMsg.c_str(), errorMsg.length());
-                continue;
-            } else if (angle < 180){
-                angle = -angle; 
-            } else if (angle > 180) {
-                angle = 360 - angle;
-            }
+            // if (angle < 0 || angle > 360) {
+            //     String errorMsg = "Invalid angle. Please enter a value between 0 and 360 degrees.\n";
+            //     PDEBUG(errorMsg);
+            //     comm_.sendPacket((uint8_t*)errorMsg.c_str(), errorMsg.length());
+            //     continue;
+            // } else if (angle < 180){
+            //     angle = -angle; 
+            // } else if (angle > 180) {
+            //     angle = 360 - angle;
+            // }
             setInitialAntennaAzimuth(angle);
             String response = "Initial antenna azimuth set to: " + String(initialAntennaAzimuth_) + " degrees.\n";
             PDEBUG(response);
@@ -150,8 +151,10 @@ bool AntennaDynamics::setPitchAngle(float angle) {
     } else if (angle < PITCH_START_ANGLE) {
         angle = PITCH_START_ANGLE;
     }
+
+    float pitchAngle = 90 - angle;
     
-    int pitchMicroseconds = map(angle, PITCH_START_ANGLE, PITCH_END_ANGLE, PITCH_START_MICROSECONDS, PITCH_END_MICROSECONDS);
+    int pitchMicroseconds = map(pitchAngle, PITCH_START_ANGLE, PITCH_END_ANGLE, PITCH_START_MICROSECONDS, PITCH_END_MICROSECONDS);
 
     if (pitchMicroseconds > PITCH_END_MICROSECONDS || pitchMicroseconds < PITCH_START_MICROSECONDS) {
         return false;

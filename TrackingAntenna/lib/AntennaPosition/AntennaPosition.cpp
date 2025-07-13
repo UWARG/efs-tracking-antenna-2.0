@@ -65,7 +65,7 @@ bool AntennaPosition::getGPSPosition() {
         PDEBUG(longitude_);
         PDEBUG(F(" (degrees)"));
 
-        altitude_ = ANTENNA_LATITUDE;
+        altitude_ = ANTENNA_ALTITUDE;
         PDEBUG(F(" Alt: "));
         PDEBUG(altitude_);
         PDEBUG(F(" (m)"));
