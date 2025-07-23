@@ -15,4 +15,5 @@ class Communication {
         bool beginUDP();
         uint16_t parseUDP();
         void sendPacket(uint8_t* data, int size);
+        IPAddress getSelfIPAddress();
 };

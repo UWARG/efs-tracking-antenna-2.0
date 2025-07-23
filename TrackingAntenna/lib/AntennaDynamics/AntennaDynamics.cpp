@@ -34,7 +34,9 @@ void AntennaDynamics::manualSetup() { // don't use this when we have the compass
     setYawAngle(0);
 
     while(comm_.parseUDP() <= 0) {
-        PDEBUG("Waiting for incoming packet to determine ip address\n");\
+        String msg = comm_.getSelfIPAddress().toString() + " ESP32C3 Waiting for incoming packet to determine ip address.\n";
+        PDEBUG(msg);
+        comm_.sendPacket((uint8_t*)msg.c_str(), msg.length());
         delay(1000);
     }
 
@@ -133,6 +135,9 @@ bool AntennaDynamics::setYawAngle(float angle) {
     PDEBUG(yawMicroseconds);
     PDEBUG("\n");
 
+    String response = "Yaw angle: " + String(angle) + " degrees.\n";
+    comm_.sendPacket((uint8_t*)response.c_str(), response.length());
+
     return true;
 }
 
@@ -169,6 +174,9 @@ bool AntennaDynamics::setPitchAngle(float angle) {
     PDEBUG("Pitch Microseconds: ");
     PDEBUG(pitchMicroseconds);
     PDEBUG("\n");
+
+    String response = "Pitch angle: " + String(angle) + " degrees.\n";
+    comm_.sendPacket((uint8_t*)response.c_str(), response.length());
 
     return true;
 }

@@ -106,7 +106,12 @@ uint16_t Communication::parseUDP() {
 
 void Communication::sendPacket(uint8_t *data, int size) {
     // send a reply, to the IP address and port that sent us the packet we received
-    UDP_.beginPacket(UDP_.remoteIP(), port);
+    if (UDP_.remoteIP()==IPAddress(0,0,0,0)){
+        IPAddress broadcastIP = IPAddress(255,255,255,255);
+        UDP_.beginPacket(broadcastIP, port);
+    }else{
+        UDP_.beginPacket(UDP_.remoteIP(), port);
+    }
     PDEBUG("Sending packet to ");
     PDEBUG(UDP_.remoteIP());
     PDEBUG(" at port ");
@@ -114,4 +119,8 @@ void Communication::sendPacket(uint8_t *data, int size) {
     PDEBUG("\n");
     UDP_.write(data,size);
     UDP_.endPacket();
+}
+
+IPAddress Communication::getSelfIPAddress(){
+    return WiFi.localIP();
 }
